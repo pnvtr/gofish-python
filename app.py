@@ -125,18 +125,51 @@ class GoFishGame:
             return False, []
 
     def is_game_over(self):
-        return len(self.deck) == 0 and (len(self.players[0]) == 0 or len(self.players[1]) == 0)
+        # Game is over if:
+        # 1. Deck is empty AND either player has no cards, OR
+        # 2. All books have been collected (13 total books possible)
+        total_books = self.books[0] + self.books[1]
+        return (len(self.deck) == 0 and (len(self.players[0]) == 0 or len(self.players[1]) == 0)) or total_books == 13
 
     def get_winner(self):
+        # If game isn't over, no winner yet
+        if not self.is_game_over():
+            return None
+            
+        # If all books are collected, winner is the one with more books
+        if self.books[0] + self.books[1] == 13:
+            if self.books[0] > self.books[1]:
+                return 0
+            elif self.books[1] > self.books[0]:
+                return 1
+            else:
+                return None  # Tie
+                
+        # If a player has no cards and deck is empty
         if len(self.players[0]) == 0:
             return 0
         elif len(self.players[1]) == 0:
             return 1
-        return None
+            
+        # Compare books if neither player has empty hand
+        if self.books[0] > self.books[1]:
+            return 0
+        elif self.books[1] > self.books[0]:
+            return 1
+        return None  # Tie
 
     def ai_make_move(self):
+        # Check if AI has no cards
         if not self.players[1]:
-            return False, [], []
+            # If deck is empty, game is over
+            if not self.deck:
+                self.current_player = 0  # Switch back to player
+                return False, [], []
+            # If deck has cards, draw one
+            new_card = self.deck.pop()
+            self.players[1].append(new_card)
+            self.players[1].sort()
+            return False, [new_card], []
 
         # Update AI memory based on game state
         self._update_ai_memory()
